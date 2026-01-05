@@ -1,38 +1,23 @@
-import os
-import time
-import busio
-import digitalio
-import board
-import adafruit_mcp3xxx.mcp3008 as MCP
-from adafruit_mcp3xxx.analog_in import AnalogIn
+from gpiozero import PWMLED, MCP3008
 
-LEFT_STICK_CHANNEL = MCP.P0
-RIGHT_STICK_CHANNEL = MCP.P1
+LEFT_STICK_X_CHANNEL = 0
+LEFT_STICK_Y_CHANNEL = 1
+RIGHT_STICK_X_CHANNEL = 2
+RIGHT_STICK_Y_CHANNEL = 3
 
 class JoySticks():
     def __init__(self):
-        # ADC related things
+        # ADC output stuff
 
-        # make spi bus
-        self.spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
-
-        # create the cs (chip select)
-        self.cs = digitalio.DigitalInOut(board.D22)
-
-        # create the mcp object
-        mcp = MCP.MCP3008(self.spi, self.cs)
-
-        # create analog input channels
-        self.left_stick = AnalogIn(self.mcp, LEFT_STICK_CHANNEL)
-        self.right_stick = AnalogIn(self.mcp, RIGHT_STICK_CHANNEL)
+        self.left_x = MCP3008(LEFT_STICK_X_CHANNEL)
+        self.left_y = MCP3008(LEFT_STICK_Y_CHANNEL)
+        self.right_x = MCP3008(RIGHT_STICK_X_CHANNEL)
+        self.right_y = MCP3008(RIGHT_STICK_Y_CHANNEL)
 
     def get_left_joystick(self):
-        return self.left_stick.value
+        return [self.left_x.value, self.left_y.value]
 
     def get_right_joystick(self):
-        return self.right_stick.value  
+        return [self.right_x.value, self.right_y.value] 
 
 
-
-
-    
