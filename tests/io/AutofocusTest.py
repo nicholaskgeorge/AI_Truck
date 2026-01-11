@@ -3,9 +3,9 @@ import signal
 import cv2
 import threading
 import argparse
-from JetsonCamera import Camera
-from Focuser import Focuser
-from Autofocus import FocusState, doFocus
+from io_libraries.camera.JetsonCamera import Camera
+from io_libraries.camera.Focuser import Focuser
+from io_libraries.camera.Autofocus import FocusState, doFocus
 
 exit_ = False
 def sigint_handler(signum, frame):

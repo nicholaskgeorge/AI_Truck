@@ -1,4 +1,5 @@
 import board
+from time import sleep
 
 from adafruit_pca9685 import PCA9685
 
@@ -37,8 +38,8 @@ class Actuation():
         self.motor_speed = 0
         self.servo_angle = 0
 
-        pca.channels[MOTOR_CHANNEL].duty_cycle = self.motor_channel_duty
-        pca.channels[SERVO_CHANNEL].duty_cycle = self.servo_channel_duty
+        self.pca.channels[MOTOR_CHANNEL].duty_cycle = self.motor_channel_duty
+        self.pca.channels[SERVO_CHANNEL].duty_cycle = self.servo_channel_duty
     
     # Function to set the duty cycle of the motor. Takes a speed value from -1 to 1
     def set_speed(self, speed):
@@ -47,10 +48,14 @@ class Actuation():
         desired_module_input = self.pulse_len_to_module_input(desired_pulse_len)
         
         self.motor_channel_duty = desired_duty_cycle
-        pca.channels[MOTOR_CHANNEL].duty_cycle = self.motor_channel_duty
+        self.pca.channels[MOTOR_CHANNEL].duty_cycle = self.motor_channel_duty
     
     def pulse_len_to_module_input(self, pulse):
         val = int(DUTY_CYCLE_MAX_VALUE/PERIOD_OF_FREQ_MICRO_SEC * pulse)
         val = min(val, MAX_PWM_MODULE_INPUT)
         val = max(val, MIN_PWM_MODULE_INPUT)
         return val
+
+if __name__ == "__main__":
+    motor_control = Actuation()
+    sleep(5)
