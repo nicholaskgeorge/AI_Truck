@@ -21,6 +21,8 @@ MIN_PWM_MODULE_INPUT = int(DUTY_CYCLE_MAX_VALUE/PERIOD_OF_FREQ_MICRO_SEC * MIN_T
 # Intput to PCA9685 module which will define a pulse of length 2000 microseconds (max throttle)
 MAX_PWM_MODULE_INPUT = int(DUTY_CYCLE_MAX_VALUE/PERIOD_OF_FREQ_MICRO_SEC * MAX_THROTTLE_PULSE_LEN)
 
+MID_PWM_MODULE_INPUT = int((MAX_PWM_MODULE_INPUT+MIN_PWM_MODULE_INPUT)/2)
+
 class Actuation():
     def __init__(self):
 
@@ -37,8 +39,9 @@ class Actuation():
     
     # Function to set the duty cycle of the motor. Takes a speed value from -1 to 1
     def calc_pwm_value(self, speed):
-        PWM_VAL = (MAX_PWM_MODULE_INPUT-MIN_PWM_MODULE_INPUT)*(speed/100) + MIN_PWM_MODULE_INPUT
-        print(int(PWM_VAL))
+        PWM_VAL = (MAX_PWM_MODULE_INPUT-MIN_PWM_MODULE_INPUT)/2*(speed/100) + MID_PWM_MODULE_INPUT
+        PWM_VAL = min(PWM_VAL, MAX_PWM_MODULE_INPUT)
+        PWM_VAL = max(PWM_VAL, MIN_PWM_MODULE_INPUT)
         return int(PWM_VAL)
 
     def set_motor_speed(self, speed):
@@ -46,8 +49,16 @@ class Actuation():
 
 if __name__ == "__main__":
     motor_control = Actuation()
-    speed = 0
+    
     while(True):
-        motor_control.set_motor_speed(speed)
-        speed = (speed +1) % 100
-        sleep(0.01)
+        motor_control.set_motor_speed(0)
+        sleep(5)
+        motor_control.set_motor_speed(50)
+        sleep(2)
+        motor_control.set_motor_speed(100)
+        sleep(2)
+        motor_control.set_motor_speed(0)
+        sleep(2)
+        motor_control.set_motor_speed(-50)
+        sleep(2)
+        motor_control.set_motor_speed(-55)
