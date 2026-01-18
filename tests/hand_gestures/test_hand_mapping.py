@@ -11,9 +11,14 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
 
+i2c_bus = 2
 camera = Camera()
-focuser = Focuser(args.i2c_bus)
-focuser.verbose = args.verbose
+focuser = Focuser(i2c_bus)
+focuser.verbose = False
+
+focusState = FocusState()
+focusState.verbose = False
+doFocus(camera, focuser, focusState)
 
 cap = cv2.VideoCapture(0)
 with mp_hands.Hands(

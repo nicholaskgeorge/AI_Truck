@@ -26,13 +26,13 @@ def parse_cmdline():
     return parser.parse_args()
 
 if __name__ == "__main__":
-    args = parse_cmdline()
+    i2c_bus = 2
     camera = Camera()
-    focuser = Focuser(args.i2c_bus)
-    focuser.verbose = args.verbose
+    focuser = Focuser(i2c_bus)
+    focuser.verbose = False
 
     focusState = FocusState()
-    focusState.verbose = args.verbose
+    focusState.verbose = False
     doFocus(camera, focuser, focusState)
 
     start = time.time()

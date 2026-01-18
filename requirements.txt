@@ -1,3 +1,5 @@
+absl-py==2.3.1
+-e git+ssh://git@github.com/nicholaskgeorge/AI_Truck.git@cd4e5b19e7ef9819ae963a51c920fc7ef1bddaaa#egg=ai_truck
 appdirs==1.4.4
 apturl==0.5.2
 argcomplete==1.8.1
@@ -12,6 +14,7 @@ Brotli==1.0.9
 catkin-pkg==1.1.0
 catkin-pkg-modules==1.1.0
 certifi==2020.6.20
+cffi==2.0.0
 chardet==4.0.0
 click==8.0.3
 colcon-argcomplete==0.3.3
@@ -116,6 +119,7 @@ ptyprocess==0.7.0
 py==1.10.0
 pycairo==1.20.1
 pycodestyle==2.8.0
+pycparser==2.23
 pycups==2.0.1
 pydocstyle==6.1.1
 pydot==1.4.2
@@ -165,6 +169,7 @@ ubuntu-drivers-common==0.0.0
 ubuntu-pro-client==8001
 ufoLib2==0.13.1
 unicodedata2==14.0.0
+UNKNOWN==0.0.0
 urllib3==1.26.5
 urwid==2.1.2
 vcstool==0.3.0
