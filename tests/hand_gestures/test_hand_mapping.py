@@ -2,55 +2,68 @@ import time
 import signal
 import threading
 import argparse
+import io_libraries.camera.JetsonCamera
+print(io_libraries.camera.JetsonCamera.__file__)
 from io_libraries.camera.JetsonCamera import Camera
 from io_libraries.camera.Focuser import Focuser
 from io_libraries.camera.Autofocus import FocusState, doFocus
 import cv2
-import mediapipe as mp
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_hands = mp.solutions.hands
+from ultralytics import YOLO
+import subprocess
+
+subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon"], check=True)
 
 i2c_bus = 2
 camera = Camera()
 focuser = Focuser(i2c_bus)
 focuser.verbose = False
 
+
 focusState = FocusState()
 focusState.verbose = False
 doFocus(camera, focuser, focusState)
 
-cap = cv2.VideoCapture(0)
-with mp_hands.Hands(
-    model_complexity=0,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5) as hands:
-  while cap.isOpened():
-    success, image = cap.read()
-    if not success:
-      print("Ignoring empty camera frame.")
-      # If loading a video, use 'break' instead of 'continue'.
-      continue
+print("Done with the focus setup")
 
-    # To improve performance, optionally mark the image as not writeable to
-    # pass by reference.
-    image.flags.writeable = False
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    results = hands.process(image)
+# Open the camera
+# cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
+print("Getting the handle")
+cap = camera.get_cv2_handle()
 
-    # Draw the hand annotations on the image.
-    image.flags.writeable = True
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    if results.multi_hand_landmarks:
-      for hand_landmarks in results.multi_hand_landmarks:
-        mp_drawing.draw_landmarks(
-            image,
-            hand_landmarks,
-            mp_hands.HAND_CONNECTIONS,
-            mp_drawing_styles.get_default_hand_landmarks_style(),
-            mp_drawing_styles.get_default_hand_connections_style())
-    # Flip the image horizontally for a selfie-view display.
-    cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
-    if cv2.waitKey(5) & 0xFF == 27:
-      break
+if not cap.isOpened():
+    print("❌ Error: Camera failed to open.")
+    print("   Please verify the GStreamer pipeline and camera connection.")
+    exit(1)
+
+print("!!!!!!!!! the open cv side of this is done!!!!!""")
+
+print("before loading model")
+# Load YOLO pose model
+model = YOLO("yolov8n-pose.pt")  # change to a bigger model for more accuracy
+
+print("📸 Starting live pose stream. Press 'q' to quit.")
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        print("⚠️ Frame grab failed — retrying...")
+        continue
+
+    # Run pose inference
+    results = model(frame, verbose=False)
+
+    # Annotate frame with keypoints + skeleton
+    if len(results) > 0:
+        annotated = results[0].plot()
+    else:
+        annotated = frame
+
+    # Display live window
+    cv2.imshow("Pose Live", annotated)
+
+    # Quit on 'q' key
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
 cap.release()
+cv2.destroyAllWindows()

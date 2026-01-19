@@ -17,3 +17,6 @@ dist/
 # Editor / OS junk
 .DS_Store
 .vscode/
+
+*.deb
+*.pt

@@ -29,7 +29,7 @@ import os
 import sys
 import time
 import argparse
-from JetsonCamera import Camera
+from io_libraries.camera.JetsonCamera import Camera
 
 from Focuser import Focuser
 # from AutoFocus import AutoFocus

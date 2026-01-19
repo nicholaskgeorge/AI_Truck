@@ -108,6 +108,7 @@ class Camera(object):
 
     def __init__(self, width=640, height=360):
         self.open_camera(width, height)
+        print("making object")
 
     def open_camera(self, width=640, height=360):
         pipe = gstreamer_pipeline()
@@ -123,6 +124,9 @@ class Camera(object):
             self.frame_reader.daemon = True
             self.frame_reader.start()
         self.previewer = Previewer(self.frame_reader, "")
+
+    def get_cv2_handle(self):
+        return self.cap
 
     def getFrame(self, timeout = None):
         return self.frame_reader.getFrame(timeout)
