@@ -13,6 +13,12 @@ import subprocess
 
 subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon"], check=True)
 
+import torch
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print("Using device:", device)
+
+
 i2c_bus = 2
 camera = Camera()
 focuser = Focuser(i2c_bus)
@@ -40,6 +46,7 @@ print("!!!!!!!!! the open cv side of this is done!!!!!""")
 print("before loading model")
 # Load YOLO pose model
 model = YOLO("yolov8n-pose.pt")  # change to a bigger model for more accuracy
+model.to(device)
 
 print("📸 Starting live pose stream. Press 'q' to quit.")
 
