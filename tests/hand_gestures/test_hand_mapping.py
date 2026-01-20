@@ -45,7 +45,7 @@ print("!!!!!!!!! the open cv side of this is done!!!!!""")
 
 print("before loading model")
 # Load YOLO pose model
-model = YOLO("yolov8n-pose.pt")  # change to a bigger model for more accuracy
+model = YOLO("best.pt")  # change to a bigger model for more accuracy
 model.to(device)
 
 print("📸 Starting live pose stream. Press 'q' to quit.")
