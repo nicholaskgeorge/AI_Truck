@@ -34,16 +34,12 @@ def start_server(host="0.0.0.0", port=6000):
 
 def send_frame(conn, frame):
     """
-    JPEG-encode and send a single frame over TCP as:
-      [4 bytes length in network order][JPEG bytes]
+    Send a single BGR frame as raw bytes:
+      [4 bytes width][4 bytes height][4 bytes channels][raw bytes]
     """
-    ok, buf = cv2.imencode(".jpg", frame)
-    if not ok:
-        return
-    data = buf.tobytes()
-    length = len(data)
-    header = struct.pack("!I", length)  # 4-byte unsigned int, network byte order
-    conn.sendall(header + data)
+    h, w, c = frame.shape
+    header = struct.pack("!III", w, h, c)  # width, height, channels (network order)
+    conn.sendall(header + frame.tobytes())
 
 if __name__ == "__main__":
     i2c_bus = 2

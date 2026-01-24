@@ -8,26 +8,31 @@ import numpy as np
 import cv2
 from flask import Flask, Response
 
+import mediapipe as mp
+
+mp_hands = mp.solutions.hands
+mp_draw = mp.solutions.drawing_utils
+
+# Create one global Hands object
+hands = mp_hands.Hands(
+    static_image_mode=False,
+    max_num_hands=2,
+    model_complexity=1,
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5,
+)
 # =========================
 # Network camera client
 # =========================
 
 class NetworkCamera:
-    """
-    Connects to the host TCP server and exposes a VideoCapture-like API:
-      read() -> (ret, frame)
-    Protocol: [4-byte length][JPEG bytes] per frame.
-    """
-
     def __init__(self, host="127.0.0.1", port=6000):
-        # With --net=host, 127.0.0.1 in the container reaches the host server.
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print(f"[docker] Connecting to host {host}:{port} ...")
         self.sock.connect((host, port))
         print("[docker] Connected to host camera stream.")
 
-    def _recv_exact(self, n: int):
-        """Receive exactly n bytes or return None if connection is lost."""
+    def _recv_exact(self, n):
         buf = b""
         while len(buf) < n:
             chunk = self.sock.recv(n - len(buf))
@@ -37,25 +42,20 @@ class NetworkCamera:
         return buf
 
     def read(self):
-        """
-        Returns (ret, frame) similar to cv2.VideoCapture.read().
-        """
-        # Read 4-byte length header
-        header = self._recv_exact(4)
+        # Read header: width, height, channels
+        header = self._recv_exact(12)  # 3 * 4 bytes
         if header is None:
             return False, None
 
-        (length,) = struct.unpack("!I", header)
-        data = self._recv_exact(length)
+        w, h, c = struct.unpack("!III", header)
+        num_bytes = w * h * c
+
+        data = self._recv_exact(num_bytes)
         if data is None:
             return False, None
 
-        # Decode JPEG to numpy array
         arr = np.frombuffer(data, dtype=np.uint8)
-        frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
-        if frame is None:
-            return False, None
-
+        frame = arr.reshape((h, w, c))
         return True, frame
 
     def release(self):
@@ -75,17 +75,22 @@ cam = NetworkCamera(host="127.0.0.1", port=6000)
 
 def process_frame(frame):
     """
-    Place for your image processing.
-
-    Right now this just draws:
-      - a green rectangle in the center
-      - FPS text
-    You can replace this with MediaPipe / gesture logic later.
+    Run MediaPipe Hands on the frame and draw landmarks.
     """
-    h, w = frame.shape[:2]
-    cx, cy = w // 2, h // 2
-    size = min(h, w) // 8
-    cv2.rectangle(frame, (cx - size, cy - size), (cx + size, cy + size), (0, 255, 0), 2)
+    # Make sure the frame is writable (copy detaches from read-only buffer)
+    frame = frame.copy()
+
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    res = hands.process(rgb)
+
+    if res.multi_hand_landmarks:
+        for hand_lms in res.multi_hand_landmarks:
+            mp_draw.draw_landmarks(
+                frame,
+                hand_lms,
+                mp_hands.HAND_CONNECTIONS,
+            )
+
     return frame
 
 
